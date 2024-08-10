@@ -135,3 +135,6 @@ androidhooks-70c5d-firebase-adminsdk-a8t13-298947a91a.json
 
 # js
 functions/index.js
+
+# jetbrains:
+.idea
