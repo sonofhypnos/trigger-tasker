@@ -1,19 +1,70 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
 
-import {onRequest} from "firebase-functions/v2/https";
-import * as logger from "firebase-functions/logger";
+admin.initializeApp();
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+interface TriggerData {
+  action: string;
+  params: Record<string, any>;
+}
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+export const triggerAction = functions.https.onRequest(
+  async (request, response) => {
+    if (request.method !== "POST") {
+      response.status(405).send("Method Not Allowed");
+      return;
+    }
+
+    const {action, params} = request.body as TriggerData;
+
+    if (!action) {
+      response.status(400).send("Missing action");
+      return;
+    }
+
+
+    try {
+      const trigger = {
+        action,
+        params,
+        timestamp: admin.database.ServerValue.TIMESTAMP,
+      };
+      await admin.database().ref("triggers").push(trigger);
+      response.status(200).send("Trigger stored successfully");
+    } catch (error) {
+      console.error("Error storing trigger:", error);
+      response.status(500).send("Error storing trigger");
+    }
+  });
+
+interface Trigger extends TriggerData {
+  id: string;
+  timestamp: number;
+}
+
+export const checkTriggers = functions.https.onRequest(
+  async (request, response) => {
+    if (request.method !== "GET") {
+      response.status(405).send("Method Not Allowed");
+      return;
+    }
+
+    try {
+      const snapshot = await admin.database().ref("triggers")
+        .orderByChild("timestamp")
+        .limitToLast(10)
+        .once("value");
+
+      const triggers: Trigger[] = [];
+      snapshot.forEach((childSnapshot) => {
+        triggers.push({
+          id: childSnapshot.key as string,
+          ...(childSnapshot.val() as Omit<Trigger, "id">),
+        });
+      });
+      response.status(200).json(triggers);
+    } catch (error) {
+      console.error("Error fetching triggers:", error);
+      response.status(500).send("Error fetching triggers");
+    }
+  });
