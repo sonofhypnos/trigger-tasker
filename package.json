@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/sonofhypnos/trigger-tasker/issues"
   },
-  "homepage": "https://github.com/sonofhypnos/trigger-tasker#readme"
+  "homepage": "https://github.com/sonofhypnos/trigger-tasker#readme",
+  "dependencies": {
+    "firebase-tools": "^13.15.1"
+  }
 }
