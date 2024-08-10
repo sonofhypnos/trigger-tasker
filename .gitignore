@@ -128,3 +128,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+
+# Secret
+androidhooks-70c5d-firebase-adminsdk-a8t13-298947a91a.json
