@@ -8,7 +8,11 @@ interface TriggerData {
   params: Record<string, any>;
 }
 
-export const triggerAction = functions.https.onRequest(
+export const triggerAction = functions.runWith({
+  timeoutSeconds: 10,
+  memory: "128MB",
+  maxInstances: 1,
+}).https.onRequest(
   async (request, response) => {
     if (request.method !== "POST") {
       response.status(405).send("Method Not Allowed");
@@ -42,7 +46,11 @@ interface Trigger extends TriggerData {
   timestamp: number;
 }
 
-export const checkTriggers = functions.https.onRequest(
+export const checkTriggers = functions.runWith({
+  timeoutSeconds: 10,
+  memory: "128MB",
+  maxInstances: 1,
+}).https.onRequest(
   async (request, response) => {
     if (request.method !== "GET") {
       response.status(405).send("Method Not Allowed");
